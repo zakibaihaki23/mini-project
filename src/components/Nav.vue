@@ -67,10 +67,7 @@
         color="grey"
         size="40"
       >
-        <v-img
-          src="https://www.coachcarson.com/wp-content/uploads/2018/09/Chad-Profile-pic-circle.png"
-          size="40"
-        ></v-img>
+        <v-img src="@/assets/Profile.png" size="40"></v-img>
       </v-avatar>
       <v-list>
         <v-list-item-title
@@ -102,9 +99,7 @@
       <v-list>
         <v-list-item>
           <v-list-item-content>
-            <v-img
-              src="https://static.wixstatic.com/media/3db22c_aafdaf572bcd42498c3043aa49cd821a~mv2.png/v1/fill/w_280,h_56,al_c,q_85,usm_0.66_1.00_0.01/PNG%20logo%20EdenFarm-02.webp"
-            ></v-img>
+            <v-img src="@/assets/Logo-Eden.png"></v-img>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -215,7 +210,7 @@
   }
 </script>
 
-<style>
+<style scoped>
   .h-sticky {
     position: sticky;
     top: 0;

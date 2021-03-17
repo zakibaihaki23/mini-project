@@ -23,7 +23,10 @@ export default {
   },
   actions: {
     async signIn({ dispatch }, credentials) {
-      let response = await axios.post('v1/auth', credentials)
+      let response = await axios.post(
+        'http://10.10.0.38:8083/v1/auth',
+        credentials
+      )
 
       const user = response.data.data.user
       // localStorage.setItem('user', user)

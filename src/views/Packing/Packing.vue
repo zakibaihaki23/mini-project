@@ -1,371 +1,276 @@
 <template>
-  <div>
-    <!-- {{ tableData }} -->
-    <v-card>
-      <v-data-table
-        :mobile-breakpoint="0"
-        :headers="table"
-        :items="tableData"
-        :items-per-page="10"
-        class="elevation-1"
-        :search="search"
-      >
-        <template v-slot:top>
-          <v-toolbar flat>
-            <v-toolbar-title>
-              <div>
-                List Packing Item
-              </div>
-            </v-toolbar-title>
-
-            <v-spacer></v-spacer>
-
-            <v-dialog v-model="dialog" max-width="500px">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  color="primary"
-                  dark
-                  class="md-gutter"
-                  v-bind="attrs"
-                  v-on="on"
-                  style="margin: 10px"
-                >
-                  Input Packing </v-btn
-                ><v-btn
-                  color="primary"
-                  dark
-                  class="md-gutter"
-                  v-bind="attrs"
-                  v-on="on"
-                  style="margin: 10px"
-                >
-                  Create Packing
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  dark
-                  class="md-gutter"
-                  v-bind="attrs"
-                  v-on="on"
-                  style="margin: 10px"
-                >
-                  Packing Item
-                </v-btn>
-              </template>
-
-              <v-card>
-                <v-card-title>
-                  <span class="headline">{{ formTitle }}</span>
-                </v-card-title>
-
-                <v-card-text>
-                  <v-container>
-                    <v-row @keyup.enter="save">
-                      <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.name"
-                          label="Name"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.phone_no"
-                          label="Phone No"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.address"
-                          label="Address"
-                        ></v-text-field>
-                      </v-col>
-                      <!-- <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.type"
-                          label="Type"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.warehouse_name"
-                          label="Warehouse"
-                        ></v-text-field>
-                      </v-col> -->
-                      <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.status"
-                          label="Status"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                  </v-container>
-                </v-card-text>
-
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="close">
-                    Cancel
-                  </v-btn>
-                  <v-btn color="blue darken-1" text @click="save">
-                    Save
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </v-toolbar>
-          <v-col class="d-flex" cols="3" sm="10">
-            <v-select style="margin: 10px" label="Area"></v-select>
-
-            <v-select style="margin: 10px" label="Warehouse"></v-select>
-            <v-select
-              style="margin: 10px"
-              :items="tableData"
-              item-value="delivery_date"
-              item-text="delivery_date"
-              label="Delivery Date"
-              v-model="search"
+  <div class="helper">
+    <h2>PACKING LIST</h2>
+    <v-container>
+      <v-row no-gutters>
+        <v-col md="6">
+          <div>
+            <v-btn :to="{ path: '/packing/create-packing' }"
+              >Create Packing</v-btn
             >
-            </v-select>
-
+          </div>
+          <div style="padding-left: 240px">
+            <v-btn :to="{ path: '/packing/packing-item' }">Packing Item</v-btn>
+          </div>
+        </v-col>
+        <v-col md="6" offset="6">
+          <div class="search">
             <v-text-field
-              style="margin: 10px"
               v-model="search"
               append-icon="mdi-magnify"
-              label="Search"
-              single-line
+              rounded
+              label="Search...."
+              solo
               hide-details
-            ></v-text-field>
-          </v-col>
+              append-outer-icon="mdi-format-align-justify"
+            >
+            </v-text-field>
+          </div>
+        </v-col>
+      </v-row>
+    </v-container>
+    <p style="font-size: 20px; margin-top: 25px">Filter</p>
+    <v-col md="12">
+      <v-divider style="margin-right: 40px"></v-divider>
+    </v-col>
+    <v-row>
+      <v-col cols="2">
+        <template>
+          <v-autocomplete
+            style="border-radius: 15px"
+            outlined
+            label="Area"
+            solo
+          >
+          </v-autocomplete>
         </template>
-        <template v-slot:item="props">
-          <tr>
-            <td>{{ props.item.document_code }}</td>
-            <td>{{ props.item.delivery_date }}</td>
-
-            <!-- <td>{{ props.item.address }}</td> -->
-            <!-- <td>{{ props.item.warehouse.warehouse_name }}</td> -->
-            <td>
-              <div v-if="props.item.status == 1">{{ 'Done' }}</div>
-              <div v-else>{{ 'New' }}</div>
-            </td>
-
-            <td>
-              <v-menu offset-y>
-                <template v-slot:activator="{ on: menu }">
-                  <v-btn small class="mr-2" icon v-on="{ ...menu }"
-                    ><v-icon dark>mdi-dots-vertical</v-icon></v-btn
-                  >
-                </template>
-                <v-list>
-                  <v-list-item style="width: 150px">
-                    <v-dialog max-width="500px">
-                      <template
-                        slot:item.actions="{ item }"
-                        v-slot:activator="{ on, attrs }"
+      </v-col>
+      <v-col cols="2">
+        <v-autocomplete
+          style="border-radius: 15px"
+          outlined
+          label="Warehouse"
+          solo
+          item-text="name"
+          clearable
+          hide-no-data
+          hide-selected
+        ></v-autocomplete>
+      </v-col>
+      <v-col cols="3">
+        <v-select
+          style="border-radius: 15px"
+          outlined
+          prepend-inner-icon="mdi-calendar"
+          label="Delivery Date"
+          solo
+        ></v-select>
+      </v-col>
+    </v-row>
+    <br />
+    <div>
+      <v-card>
+        <v-data-table
+          loading-text="Please Wait...."
+          :mobile-breakpoint="0"
+          :headers="table"
+          :items="dataTable"
+          :page.sync="page"
+          :items-per-page="itemsPerPage"
+          class="elevation-1"
+          :search="search"
+          @page-count="pageCount = $event"
+        >
+          <template v-slot:item="props">
+            <tr>
+              <td>{{ props.item.document_code }}</td>
+              <td>{{ props.item.warehouse.warehouse_name }}</td>
+              <td>{{ props.item.delivery_date | moment('DD/MM/YYYY') }}</td>
+              <td>{{ props.item.note }}</td>
+              <td>
+                <div v-if="props.item.status == 1">
+                  {{ 'Done' }}
+                </div>
+                <div v-else>{{ 'New' }}</div>
+              </td>
+              <td>
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn v-bind="attrs" v-on="on" icon>
+                      <v-icon dark>
+                        mdi-dots-horizontal
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <template class="menu">
+                      <v-list-item
+                        :to="{
+                          path: `/helper/update-helper/${props.item.id}`,
+                        }"
+                        link
+                        style="width: 150px; "
                       >
-                        <v-list-item-title
-                          v-bind="attrs"
-                          v-on="on"
-                          @click="editItem(props.item)"
-                          >Edit</v-list-item-title
+                        <div>
+                          <v-list-item-title
+                            :to="{ path: '/helper/update-helper' }"
+                            link
+                            >Input Packing</v-list-item-title
+                          >
+                        </div>
+                      </v-list-item>
+                    </template>
+                    <v-divider
+                      style="margin-left: 10px;margin-right: 10px"
+                    ></v-divider>
+                    <v-list-item link>
+                      <v-list-item-title>
+                        <div
+                          @click="archive(props.item.id)"
+                          v-if="props.item.is_active == 0"
                         >
-                      </template>
-                    </v-dialog>
-                  </v-list-item>
-                  <v-divider
-                    style="margin-left: 10px;margin-right: 10px"
-                  ></v-divider>
-                  <v-list-item>
-                    <v-list-item-title>
-                      Active
-                    </v-list-item-title>
-                  </v-list-item>
-                  <router-view></router-view>
-                </v-list>
-              </v-menu>
-            </td>
-          </tr>
-        </template>
-      </v-data-table>
-    </v-card>
+                          {{ 'Active' }}
+                        </div>
+                        <div @click="unarchive(props.item.id)" v-else>
+                          {{ 'Inactive' }}
+                        </div>
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
+      </v-card>
+    </div>
   </div>
 </template>
 
 <script>
-  import axios from 'axios'
-
   export default {
     data() {
       return {
-        dialog: false,
-        dialogDelete: false,
+        page: 1,
+        pageCount: 0,
+        itemsPerPage: 5,
         search: '',
-        edit: '',
-        interval: null,
+        filter_search: '',
         table: [
           {
             text: 'Packing Code',
             value: 'document_code',
+            align: 'left',
+            class: ' black--text title',
+          },
+          {
+            text: 'Warehouse',
+            value: 'warehouse_name',
+            align: 'left',
+            class: '  black--text title',
           },
           {
             text: 'Delivery Date',
             value: 'delivery_date',
+            class: 'black--text title',
           },
+          {
+            text: 'Note',
+            value: 'note',
+            class: 'black--text title',
+          },
+
           {
             text: 'Status',
             value: 'status',
+            class: 'black--text title',
           },
-          //   {
-          //     text: 'Address',
-          //     value: 'address',
-          //   },
-
-          // {
-          //   text: 'Warehouse',
-          //   value: 'warehouse.warehouse_name',
-          // },
-
           {
-            text: 'Actions',
             value: 'actions',
             sortable: false,
           },
         ],
-        editData: [
-          {
-            text: 'Edit',
-            value: 'edit',
-          },
-          {
-            text: 'Inactive',
-          },
-        ],
-        tableData: [],
+        dataTable: [],
         editedIndex: -1,
-        editedItem: {
-          name: '',
-          phone_no: '',
-          address: '',
-          type: '',
-          warehouse: '',
-          status: '',
-        },
-        defaultItem: {
-          name: '',
-          phone_no: '',
-          address: '',
-          type: '',
-          warehouse: '',
-          status: '',
-        },
-        listPrimitive: null,
       }
     },
 
-    computed: {
-      formTitle() {
-        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
-      },
+    created() {
+      this.renderData()
+      this.initialize()
     },
-    watch: {
-      dialog(val) {
-        val || this.close()
-      },
-      dialogDelete(val) {
-        val || this.closeDelete()
-      },
-    },
-
     methods: {
       initialize() {
-        this.tableData = [this.tableData]
+        this.dataTable = [this.dataTable]
       },
-      renderData() {
-        const token = localStorage.getItem('token')
-        axios
-          .get('v1/packing', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
+
+      //get data user dari API
+      renderData(warehouse_search) {
+        this.$http
+          .get('/v1/packing')
           .then((response) => {
             // let that = this;
 
-            this.tableData = response.data.data
-            if (this.tableData === null) {
-              this.tableData = []
+            this.dataTable = response.data.data
+
+            if (this.dataTable === null) {
+              this.dataTable = []
             }
           })
           .catch((error) => {
             console.log(error)
           })
       },
-      editItem(item) {
-        this.editedIndex = this.tableData.indexOf(item)
-        this.editedItem = Object.assign({}, item)
-        this.dialog = true
-      },
-
-      deleteItem(item) {
-        this.editedIndex = this.tableData.indexOf(item)
-        this.editedItem = Object.assign({}, item)
-        this.dialogDelete = true
-      },
-
-      deleteItemConfirm() {
-        this.tableData.splice(this.editedIndex, 1)
-        this.closeDelete()
-      },
-      close() {
-        this.dialog = false
-        this.$nextTick(() => {
-          this.editedItem = Object.assign({}, this.defaultItem)
-          this.editedIndex = -1
-        })
-      },
-
-      closeDelete() {
-        this.dialogDelete = false
-        this.$nextTick(() => {
-          this.editedItem = Object.assign({}, this.defaultItem)
-          this.editedIndex = -1
-        })
-      },
-      save() {
-        const token = localStorage.getItem('token')
-        axios
-          .post('v1/helper', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            name: this.editedItem.name,
-            phone_no: this.editedItem.phone_number,
-            address: this.editItem.address,
-            status: this.editItem.status,
-          })
-
-          .then(function(response) {
-            console.log(response)
-          })
-          .catch(function(error) {
-            console.log(error)
-          })
-        // if (this.editedIndex > -1) {
-        //   Object.assign(this.tableData[this.editedIndex], this.editedItem);
-        // } else {
-        //   this.tableData.push(this.editedItem);
-        // }
-        this.close()
-      },
-    },
-
-    created() {
-      this.renderData()
-      this.initialize()
-      // this.interval = setInterval(this.refreshData, 5000);
-    },
-    beforeDestroy() {
-      clearInterval(this.interval)
     },
   }
 </script>
+
+<style scoped>
+  .helper {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    padding-left: 80px;
+    padding-right: 50px;
+  }
+  .v-btn:not(.v-btn--round).v-size--default {
+    position: absolute;
+    width: 200px;
+    height: 50px;
+    background: #4662d4;
+    color: white;
+    border-radius: 30px;
+    box-sizing: content-box;
+    margin-top: 50px;
+    text-transform: capitalize;
+    cursor: pointer;
+    padding: 5px;
+  }
+  .search {
+    padding-left: 100px;
+    padding-right: 50px;
+
+    margin-top: 50px;
+  }
+  thead {
+    border-radius: 60px;
+  }
+  /* .mytable .v-table tbody tr:not(:last-child) {
+    border-bottom: none;
+    background: brown;
+  } */
+  .v-data-table-header thead {
+    background: red;
+  }
+  .v-menu__content {
+    border-radius: 8px;
+    border: 1px solid #c4c4c4;
+    outline-style: inherit;
+    outline-color: white;
+    box-shadow: none;
+
+    outline-color: #e8eff2;
+  }
+  .v-sheet.v-list {
+    background: #e8eff2;
+  }
+</style>

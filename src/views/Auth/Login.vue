@@ -1,55 +1,53 @@
 <template>
   <div id="login" class="bigbk">
     <div>
-      <v-img
-        class="gbr"
-        src="https://www.static-src.com/wcsstore/Indraprastha/images/catalog/mlogo/EDF-60021.png"
-      ></v-img>
+      <v-img class="gbr" src="@/assets/Logo-Login.png"></v-img>
     </div>
-    <v-container class="login-container">
-      <v-form @submit.prevent="submit" ref="form" v-model="valid">
-        <!-- <v-card-title>
+    <div>
+      <v-container class="login-container">
+        <v-form @submit.prevent="submit" ref="form" v-model="valid">
+          <!-- <v-card-title>
           <v-img
             src="https://www.static-src.com/wcsstore/Indraprastha/images/catalog/mlogo/EDF-60021.png"
           ></v-img
         ></v-card-title> -->
-        <v-text-field
-          prepend-inner-icon="mdi-account"
-          v-model="form.email"
-          label="E-Mail"
-          required
-          class="form"
-          flat
-          solo
-          style="margin-bottom: 30px; margin-top: 50px; width: 300px; margin-left: 50px"
-        >
-        </v-text-field>
-        <v-text-field
-          prepend-inner-icon="mdi-lock"
-          v-model="form.password"
-          @click.prevent="submit()"
-          label="Password"
-          :type="value ? 'password' : 'text'"
-          :append-icon="value ? 'mdi-eye' : 'mdi-eye-off'"
-          @click:append="() => (value = !value)"
-          flat
-          solo
-          class="form"
-          style=" margin-top: 50px; width: 300px; margin-left: 50px"
-        >
-          <v-spacer></v-spacer>
-        </v-text-field>
-        <!-- <v-checkbox label="Remember Me"></v-checkbox> -->
-        <v-btn
-          style="height: 50px; width: 300px; margin-left: 50px"
-          elevation="1"
-          depressed
-          type="submit"
-        >
-          <!----><!----><span>Login</span>
-        </v-btn>
-      </v-form>
-    </v-container>
+          <v-text-field
+            prepend-inner-icon="mdi-account"
+            v-model="form.email"
+            label="E-Mail"
+            required
+            class="form"
+            flat
+            solo
+            style="margin-bottom: 30px; margin-top: 50px; width: 300px; margin-left: 50px"
+          >
+          </v-text-field>
+          <v-text-field
+            prepend-inner-icon="mdi-lock"
+            v-model="form.password"
+            label="Password"
+            :type="value ? 'password' : 'text'"
+            :append-icon="value ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append="() => (value = !value)"
+            flat
+            solo
+            class="form"
+            style=" margin-top: 50px; width: 300px; margin-left: 50px"
+          >
+            <v-spacer></v-spacer>
+          </v-text-field>
+          <!-- <v-checkbox label="Remember Me"></v-checkbox> -->
+          <v-btn
+            style="height: 50px; width: 300px; margin-left: 50px"
+            elevation="1"
+            depressed
+            type="submit"
+          >
+            <!----><!----><span>Login</span>
+          </v-btn>
+        </v-form>
+      </v-container>
+    </div>
   </div>
 </template>
 
@@ -81,11 +79,27 @@
       }),
 
       submit() {
-        this.signIn(this.form).then(() => {
-          this.$router.replace({
-            name: 'Help',
+        this.signIn(this.form)
+          .then(() => {
+            window.location.reload()
+            this.$router.push('/helper')
           })
-        })
+          .catch((error) => {
+            this.$toast.error(error.response.data.message, {
+              position: 'top-right',
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: false,
+              pauseOnHover: false,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: 'button',
+              icon: true,
+              rtl: false,
+            })
+          })
       },
     },
   }
@@ -105,24 +119,13 @@
     height: 350px;
     left: 525px;
     margin: 220px;
-    bottom: 5%;
+    top: 150px;
     background: linear-gradient(
       179.68deg,
       #99cdb7 -115.48%,
       rgba(136, 207, 177, 0.06) 99.69%
     );
     border-radius: 20px;
-    /* box-shadow: 0 0px 8px 0 rgba(0, 0, 0, 0.06), 0 1px 0px 0 rgba(0, 0, 0, 0.02);
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    background-clip: padding-box;
-    margin: 180px auto;
-    width: 500px;
-    padding: 35px 35px 15px 35px;
-    background: #fff;
-    border: 1px solid #eaeaea;
-    box-shadow: 0 0 25px #cac6c6; */
   }
   .form {
     width: 400px;
@@ -148,9 +151,7 @@
   }
   .gbr {
     position: absolute;
-    left: 45.49%;
-    right: 45.49%;
-    top: 9.41%;
-    bottom: 70%;
+    left: 670px;
+    margin: 220px;
   }
 </style>

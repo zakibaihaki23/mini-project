@@ -4,8 +4,10 @@
     <v-container>
       <v-row no-gutters>
         <v-col md="6">
-          <div v-for="(item, itm) in items" :key="itm">
-            <v-btn :to="item.path">Registration Helper</v-btn>
+          <div>
+            <v-btn :to="{ path: '/helper/registration-helper' }"
+              >Registration Helper</v-btn
+            >
           </div>
         </v-col>
         <v-col md="6" offset="6">
@@ -17,43 +19,54 @@
               label="Search...."
               solo
               hide-details
-              append-outer-icon="mdi-format-align-justify"
             >
             </v-text-field>
           </div>
         </v-col>
       </v-row>
     </v-container>
-    <p style="font-size: 20px">Filter</p>
+    <p style="font-size: 20px; margin-top: 25px">Filter</p>
     <v-col md="12">
       <v-divider style="margin-right: 40px"></v-divider>
     </v-col>
     <v-row>
       <v-col cols="2">
-        <v-select
-          style="border-radius: 15px"
-          outlined
-          label="Status"
-          solo
-          item-text="status"
-          v-model="search"
-        ></v-select>
+        <template>
+          <v-autocomplete
+            style="border-radius: 15px"
+            outlined
+            label="Status"
+            solo
+            clearable
+            item-value="value"
+            item-text="name"
+            :items="type"
+          >
+          </v-autocomplete>
+        </template>
       </v-col>
-      <v-col cols="2">
-        <v-select
+      <v-col cols="3">
+        <SelectWarehouse v-model="warehouse" @selected="warehouseSelected">
+        </SelectWarehouse>
+        <!-- <v-autocomplete
           style="border-radius: 15px"
           outlined
           label="Warehouse"
           solo
-          item-text="warehouse"
-          v-model="search"
-        ></v-select>
+          :items="warehouse"
+          item-text="name"
+          item-value="id"
+          clearable
+          hide-no-data
+          hide-selected
+        ></v-autocomplete> -->
       </v-col>
     </v-row>
     <br />
     <div>
       <v-card>
         <v-data-table
+          loading-text="Please Wait...."
           :mobile-breakpoint="0"
           :headers="table"
           :items="dataTable"
@@ -61,23 +74,20 @@
           :items-per-page="itemsPerPage"
           class="elevation-1"
           :search="search"
-          hide-default-footer
           @page-count="pageCount = $event"
         >
           <template v-slot:item="props">
             <tr>
               <td>{{ props.item.code }}</td>
               <td>{{ props.item.name }}</td>
-              <td>{{ props.item.phone_no }}</td>
+              <td>{{ props.item.phone_number }}</td>
               <td>{{ props.item.address }}</td>
-              <td>
-                <div v-if="props.item.type == 1">{{ 'Help Picker' }}</div>
-                <div v-else>{{ 'Helper' }}</div>
-              </td>
+              <td>{{ props.item.helper_type.type_name }}</td>
               <td>{{ props.item.warehouse.warehouse_name }}</td>
+
               <td>
-                <div v-if="props.item.status == 1">{{ 'Active' }}</div>
-                <div v-else>{{ 'Inactive' }}</div>
+                <div v-if="props.item.is_active == 0">{{ 'Archive' }}</div>
+                <div v-else>{{ 'Unarchive' }}</div>
               </td>
               <td>
                 <v-menu offset-y>
@@ -89,13 +99,13 @@
                     </v-btn>
                   </template>
                   <v-list>
-                    <template>
+                    <template class="menu">
                       <v-list-item
                         :to="{
                           path: `/helper/update-helper/${props.item.id}`,
                         }"
                         link
-                        style="width: 150px"
+                        style="width: 150px; "
                       >
                         <div>
                           <v-list-item-title
@@ -111,7 +121,15 @@
                     ></v-divider>
                     <v-list-item link>
                       <v-list-item-title>
-                        Active
+                        <div
+                          @click="archive(props.item.id)"
+                          v-if="props.item.is_active == 0"
+                        >
+                          {{ 'Unarchive' }}
+                        </div>
+                        <div @click="unarchive(props.item.id)" v-else>
+                          {{ 'Archive' }}
+                        </div>
                       </v-list-item-title>
                     </v-list-item>
                   </v-list>
@@ -122,37 +140,21 @@
         </v-data-table>
       </v-card>
     </div>
-    <div>
-      <v-pagination
-        style="margin-right: 1300px'; margin-top: 20px"
-        v-model="page"
-        :length="pageCount"
-        prev-icon="mdi-chevron-left"
-        next-icon="mdi-chevron-right"
-        color="#4662d4"
-      ></v-pagination>
-      <br />
-      <br />
-    </div>
   </div>
 </template>
 
 <script>
-  import axios from 'axios'
+  import SelectWarehouse from '../../components/SelectWarehouse'
+
   export default {
+    components: { SelectWarehouse },
     data() {
       return {
         page: 1,
         pageCount: 0,
         itemsPerPage: 5,
         search: '',
-        items: [
-          {
-            name: 'Registration Helper',
-            path: '/helper/registration-helper',
-            component: () => import('../Helper/RegistrationHelper'),
-          },
-        ],
+        filterWarehouse: '',
         table: [
           {
             text: 'Helper ID',
@@ -167,8 +169,8 @@
             class: '  black--text title',
           },
           {
-            text: 'Phone No',
-            value: 'phone_no',
+            text: 'Phone Number',
+            value: 'phone_number',
             class: 'black--text title',
           },
           {
@@ -179,18 +181,20 @@
 
           {
             text: 'Type',
-            value: 'type',
+            value: 'helper_type.type_name',
             class: 'black--text title',
           },
           {
             text: 'Warehouse',
             value: 'warehouse.warehouse_name',
             class: 'black--text title',
+            keys: ['warehouse.warehouse_name'],
           },
           {
             text: 'Status',
-            value: 'status',
+            value: 'is_active',
             class: 'black--text title',
+            key: ['status'],
           },
           {
             value: 'actions',
@@ -199,52 +203,93 @@
         ],
         dataTable: [],
         editedIndex: -1,
-        editedItem: {
-          code: '',
-          phone_no: '',
-          warehouse_name: '',
-          name: '',
-          type: '',
-          address: '',
-        },
-        defaultItem: {
-          code: '',
-          phone_no: '',
-          warehouse_name: '',
-          name: '',
-          type: '',
-          address: '',
-        },
+        id: '',
+        warehouse: [],
+        type: '',
       }
     },
-
     created() {
       this.renderData()
+
       this.initialize()
     },
+    watch: {
+      warehouse: {
+        handler: function(val) {
+          let that = this
+          that.renderData = this.warehouse
+        },
+        deep: true,
+      },
+    },
+
     methods: {
       initialize() {
         this.dataTable = [this.dataTable]
       },
-      renderData() {
-        const token = localStorage.getItem('token')
-        axios
-          .get('v1/helper', {
-            headers: {
-              Authorization: `Bearer ${token}`,
+
+      //get data user dari API
+      renderData(warehouseId) {
+        if (warehouseId !== '' && warehouseId !== undefined) {
+          warehouseId = 'warehouse_id.e:' + warehouseId
+        } else {
+          warehouseId = ''
+        }
+        this.$http
+          .get('v1/user', {
+            params: {
+              embeds: 'helper_type_id,warehouse_id',
+              conditions: warehouseId,
             },
           })
           .then((response) => {
             // let that = this;
 
             this.dataTable = response.data.data
+
             if (this.dataTable === null) {
               this.dataTable = []
             }
           })
-          .catch((error) => {
-            console.log(error)
-          })
+
+        this.$http.get('/v1/helper/helpertype').then((response) => {
+          this.type = response.data.data
+
+          this.type = []
+          let array = response.data.data
+          for (let i = 0; i < array.length; i++) {
+            this.type.push({
+              name: array[i].type_name,
+              value: array[i].id,
+            })
+          }
+        })
+      },
+
+      //fungsi untuk unarchive
+      unarchive(id) {
+        this.$http.put('/v1/user/' + id + '/archive', {
+          Headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        window.location.reload()
+      },
+
+      //fungsi untuk archive
+      archive(id) {
+        this.$http.put('/v1/user/' + id + '/unarchive', {
+          Headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        window.location.reload()
+      },
+
+      warehouseSelected(warehouse) {
+        this.warehouse = warehouse
+        // console.log(this.warehouse.value)
+        this.renderData(this.warehouse.value)
       },
     },
   }
@@ -257,17 +302,19 @@
     padding-left: 80px;
     padding-right: 50px;
   }
+
   .v-btn:not(.v-btn--round).v-size--default {
     position: absolute;
-    width: 178px;
+    width: 200px;
     height: 50px;
     background: #4662d4;
     color: white;
-    border-radius: 25px;
+    border-radius: 30px;
     box-sizing: content-box;
     margin-top: 50px;
     text-transform: capitalize;
     cursor: pointer;
+    padding: 5px;
   }
   .search {
     padding-left: 100px;
@@ -284,5 +331,17 @@
   } */
   .v-data-table-header thead {
     background: red;
+  }
+  .v-menu__content {
+    border-radius: 8px;
+    border: 1px solid #c4c4c4;
+    outline-style: inherit;
+    outline-color: white;
+    box-shadow: none;
+
+    outline-color: #e8eff2;
+  }
+  .v-sheet.v-list {
+    background: #e8eff2;
   }
 </style>

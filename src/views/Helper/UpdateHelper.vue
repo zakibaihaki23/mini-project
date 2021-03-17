@@ -4,22 +4,17 @@
     <v-row no-gutters>
       <v-col md="6">
         <div class="form-right">
-          <p>Helper ID*</p>
-          <v-text-field disabled class="name" v-model="editedItem.code" solo>
-          </v-text-field>
+          <p>Helper ID <span style="color: red">*</span></p>
+          <v-text-field disabled v-model="editedItem.code" solo> </v-text-field>
           <p>Phone Number*</p>
-          <v-text-field
-            class="name"
-            label="Phone Number"
-            v-model="editedItem.phone_no"
-            solo
-          >
+          <v-text-field label="Phone Number" v-model="editedItem.phone_no" solo>
           </v-text-field>
-          <p>Warehouse*</p>
+          <p>Warehouse <span style="color: red">*</span></p>
           <v-select
-            class="name"
-            label="Warehouse"
-            v-model="editedItem.warehouse"
+            :items="warehouse"
+            v-model="warehouse_list"
+            item-text="name"
+            item-value="value"
             solo
           >
           </v-select>
@@ -27,26 +22,52 @@
       </v-col>
       <v-col md="6">
         <div class="form-right">
-          <p>Name*</p>
+          <p>Name <span style="color: red">*</span></p>
+          <v-text-field label="Name" v-model="editedItem.name" solo>
+          </v-text-field>
+
+          <p>Type <span style="color: red">*</span></p>
+          <v-select label="Type" v-model="types" :items="typesValue" solo>
+          </v-select>
+          <p>Address <span style="color: red">*</span></p>
+          <v-textarea label="Address" v-model="editedItem.address" solo>
+          </v-textarea>
+        </div>
+      </v-col>
+    </v-row>
+
+    <h1 style="margin-top: 20px">CREDENTIAL</h1>
+    <v-row no-gutters>
+      <v-col md="6">
+        <div class="form-right">
+          <p>Username <span style="color: red">*</span></p>
+          <v-text-field v-model="editedItem.email" solo> </v-text-field>
+          <p>Password <span style="color: red">*</span></p>
           <v-text-field
-            disabled
-            class="name"
-            label="Name"
-            v-model="editedItem.name"
+            label="Password *"
             solo
+            v-model="editedItem.password"
+            :type="value ? 'password' : 'text'"
+            :append-icon="value ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append="() => (value = !value)"
           >
           </v-text-field>
-          <p>Type*</p>
-          <v-select class="name" label="Type" v-model="editedItem.type" solo>
-          </v-select>
-          <p>Address*</p>
-          <v-textarea
-            class="name"
-            label="Address"
-            v-model="editedItem.address"
+        </div>
+      </v-col>
+      <v-col md="6">
+        <div class="form-right">
+          <p style="padding-top: 118px">
+            Confirm Password <span style="color: red">*</span>
+          </p>
+          <v-text-field
+            label="Confirm Password *"
             solo
+            v-model="editedItem.confirm_password"
+            :type="value ? 'password' : 'text'"
+            :append-icon="value ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append="() => (value = !value)"
           >
-          </v-textarea>
+          </v-text-field>
         </div>
       </v-col>
     </v-row>
@@ -71,11 +92,11 @@
 </template>
 
 <script>
-  import axios from 'axios'
   export default {
     data() {
       return {
         edit: '',
+        value: String,
         items: [
           {
             name: 'Help',
@@ -83,21 +104,29 @@
           },
         ],
         editedIndex: -1,
+        warehouse: '',
+        warehouse_list: '',
+        types: '',
+        typesValue: [
+          {
+            text: 'Help Picker',
+            value: 'help_picker',
+          },
+          {
+            text: 'Helper',
+            value: 'helper',
+          },
+        ],
         editedItem: {
           code: '',
+          email: '',
           phone_no: '',
           warehouse_name: '',
           name: '',
           type: '',
           address: '',
-        },
-        defaultItem: {
-          code: '',
-          phone_no: '',
-          warehouse_name: '',
-          name: '',
-          type: '',
-          address: '',
+          password: '',
+          confirm_password: '',
         },
       }
     },
@@ -105,47 +134,66 @@
       this.renderData()
     },
     methods: {
+      //untuk mendapatkan data dari API ke dalam format text-field
       renderData() {
-        axios.get('/v1/helper/' + this.$route.params.id).then((response) => {
-          this.editedItem.code = response.data.code
-          this.editedItem.phone_no = response.data.phone_no
-          this.editedItem.warehouse_name = response.data.warehouse_name
-          this.editedItem.name = response.data.name
-          this.editedItem.type = response.data.data.type
+        this.$http.get('/v1/user/' + this.$route.params.id).then((response) => {
+          this.editedItem.code = response.data.data.code
+          this.editedItem.email = response.data.data.email
+          this.editedItem.phone_no = response.data.data.phone_number
+          this.warehouse_list = response.data.data.warehouse.warehouse_name
+          this.editedItem.name = response.data.data.name
+          this.editedItem.warehouse_name = this.editedItem.type =
+            response.data.data.type
           this.editedItem.address = response.data.data.address
+          this.editedItem.password = response.data.data.password
+          this.types = response.data.data.types
+          this.editedItem.confirm_password = response.data.data.password
           this.update = true
-          console.log(response.data.code)
+          this.$http.get('/v1/warehouse').then((response) => {
+            this.warehouse = []
+            let array = response.data.data
+            for (let i = 0; i < array.length; i++) {
+              this.warehouse.push({
+                name: array[i].warehouse_name,
+                value: array[i].id,
+              })
+            }
+          })
         })
       },
-
+      //menyimpan data update ke dalam API
       save() {
-        const token = localStorage.getItem('token')
-
-        axios
-          .put('v1/helper', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            code: this.editedItem.code,
-            phone_no: this.editedItem.phone_no,
-            warehouse_name: this.editedItem.warehouse_name,
+        this.$http
+          .put('/v1/user/' + this.$route.params.id, {
             name: this.editedItem.name,
-            type: this.editedItem.type,
-            address: this.editItem.address,
+            email: this.editedItem.email,
+            helper_type_id: this.warehouse_list,
+            phone_number: this.editedItem.phone_no,
+            warehouse_id: this.warehouse_list,
+            password: this.editedItem.password,
+            confirm_password: this.editedItem.confirm_password,
           })
 
-          .then(function(response) {
-            console.log(response)
+          .then((response) => {
+            this.$router.push('/helper')
+            this.$toast.success('Data has been update successfully', {
+              position: 'top-right',
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: false,
+              pauseOnHover: false,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: 'button',
+              icon: true,
+              rtl: false,
+            })
           })
-          .catch(function(error) {
+          .catch((error) => {
             console.log(error)
           })
-
-        // if (this.editedIndex > -1) {
-        //   Object.assign(this.tableData[this.editedIndex], this.editedItem);
-        // } else {
-        //   this.tableData.push(this.editedItem);
-        // }
       },
     },
   }
